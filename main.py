@@ -5,6 +5,7 @@ import os
 SEPARATOR = "-" * 47
 MAX_PLAYERS_IN_HIGH_SCORE = 5
 
+
 def draw_greeting() -> None:
     print(SEPARATOR)
     print("Hi there!")
@@ -72,14 +73,12 @@ def get_high_score() -> dict:
             table_values = file.readlines()
             for i, line in enumerate(table_values):
                 line = line.strip("\n").split(",")
-                result[i] = dict(player=line[0], guesses=line[1], time=line[2])
+                result[i] = dict(player=str(line[0]), guesses=str(line[1]), time=str(line[2]))
     return result
 
 
 def draw_high_score(high_score_table: dict) -> None:
-    if len(high_score_table) == 0:
-        print("Still no players in High Score Table.")
-    else:
+    if high_score_table:
         # High Score table header
         inner_separator = "+" + "-" * (len(SEPARATOR) - 23) + "+---------+----------+"
         print("+" + "-" * (len(SEPARATOR) - 2) + "+")
@@ -90,51 +89,77 @@ def draw_high_score(high_score_table: dict) -> None:
 
         # High Score table players
         counter = 0
-        while counter <= MAX_PLAYERS_IN_HIGH_SCORE - 1 and counter <= len(high_score_table):
+        while counter < MAX_PLAYERS_IN_HIGH_SCORE and counter < len(high_score_table):
             print("|{:^{}}".format(high_score_table[counter]["player"], len(SEPARATOR) - 23) +
                   "|{:^9}".format(high_score_table[counter]["guesses"]) +
                   "|{:^10}|".format(high_score_table[counter]["time"]))
             counter += 1
         print(inner_separator)
+    else:
+        print("Still no players in High Score Table.")
 
 
-def check_high_score(high_score_table: dict, played_turns: int, time_format: str) -> int:
+def check_high_score(high_score_table: dict, played_turns: int, time_format: str) -> dict:
     counter = 0
     player_order = 0
 
     # check order
-    while counter <= MAX_PLAYERS_IN_HIGH_SCORE - 1 and counter <= len(high_score_table):
-        if played_turns < int(high_score_table[counter]["guesses"]):
-            if time_format < high_score_table[counter]["time"]:
-                player_order = counter
-                break
-            else:
-                player_order = counter +1
-                break
-        counter += 1
+    if high_score_table:
+        while counter < len(high_score_table):
+            if played_turns <= int(high_score_table[counter]["guesses"]):
+                if time_format < high_score_table[counter]["time"]:
+                    player_order = counter
+                    break
+                else:
+                    player_order = counter +1
+                    break
+            counter += 1
 
-    if player_order <= MAX_PLAYERS_IN_HIGH_SCORE:
+    # new record
+    if player_order < MAX_PLAYERS_IN_HIGH_SCORE:
         print("Congratulations!")
         print("You have new record.")
         name = input("Enter your name: ")
+        high_score_table = actualize_high_score(high_score_table, player_order, name, played_turns, time_format)
 
-        # write back to High Score table
-
-        while counter <= MAX_PLAYERS_IN_HIGH_SCORE - 1 and counter <= len(high_score_table):
-        actualised_high_score_table =
+    return high_score_table
 
 
-def save_high_score(high_score_table: dict):
-    pass
+def actualize_high_score(old_high_score_table: dict, new_player_order: int, player_name: str, guesses: int, time: str) -> dict:
+    counter = 0
+    work_list = []
+    result = dict()
+    if old_high_score_table:
+        while counter < MAX_PLAYERS_IN_HIGH_SCORE and counter < len(old_high_score_table):
+            if new_player_order == counter:
+                work_list.append(dict(player=player_name, guesses=guesses, time=time))
+
+            work_list.append(old_high_score_table[counter])
+            counter += 1
+    else:
+        work_list.append(dict(player=player_name, guesses=guesses, time=time))
+
+    # create new high score table
+    for i, item in enumerate(work_list):
+        result[i] = work_list[i]
+
+    return result
+
+
+def save_high_score(high_score_table: dict) -> None:
+    if high_score_table:
+        counter = 0
+        with open("high_score.txt", "w") as file:
+            while counter < MAX_PLAYERS_IN_HIGH_SCORE and counter < len(high_score_table):
+                line = f"{high_score_table[counter]['player']},{high_score_table[counter]['guesses']},{high_score_table[counter]['time']}"
+                file.write(line + "\n")
+                counter += 1
 
 
 def main():
     played_turns = 0
     draw_greeting()
-
     high_score_table = get_high_score()
-    check_high_score(high_score_table, 1, "00:03:55")
-    draw_high_score(high_score_table)
 
     # game setup
     avaible_numbers = list("0123456789")
@@ -156,10 +181,13 @@ def main():
                 break
             else:
                 print(message)
-                print(secret_number)  #delete!!!!!!!
                 print(SEPARATOR)
+
     print("Game over.")
-    check_high_score(played_turns, time_format)
+
+    high_score_table = check_high_score(high_score_table, played_turns, time_format)
+    draw_high_score(high_score_table)
+    save_high_score(high_score_table)
 
 
 if __name__ == "__main__":

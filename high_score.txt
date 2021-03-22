@@ -1,6 +1,2 @@
-Baron Frankenstein,4,00:01:23
-Hob,5,00:02:34
-kulik,6,00:03:46
-Bubik,7,00:04:23
-Dulik,8,00:05:34
-ZAXXON,9,00:06:46
+Hugo,6,00:14:09
+Frankenstein,7,00:15:18
