@@ -90,28 +90,30 @@ def draw_win_message(played_turns: int, total_time: float) -> str:
     return time_format
 
 
-def get_high_score() -> dict:
+def get_high_score() -> list:
     """
-    Načte High Score tabulku ze souboru.
+    Načte High Score tabulku ze souboru a vytvoří odpovídající list.
 
-    :return: slovník s tabulkou High Score
+    :return: list slovníků, který reprezentuje tabulku High Score
     """
-    result = dict()
+    result = list()
     filename = "high_score.txt"
     if os.path.exists(filename):
         with open(filename, "r") as file:
-            table_values = file.readlines()
-            for i, line in enumerate(table_values):
-                line = line.strip("\n").split(",")
-                result[i] = dict(player=str(line[0]), guesses=str(line[1]), time=str(line[2]))
+            for item in file.readlines():
+                line = item.strip("\n").split(",")
+                result.append(dict(player=str(line[0]), guesses=str(line[1]), time=str(line[2])))
+    if len(result) > MAX_PLAYERS_IN_HIGH_SCORE:
+        result = result[:MAX_PLAYERS_IN_HIGH_SCORE]
+
     return result
 
 
-def draw_high_score(high_score_table: dict) -> None:
+def draw_high_score(high_score_table: list) -> None:
     """
     Vykreslí tabulku High Score
 
-    :param high_score_table: slovník s tabulkou High Score
+    :param high_score_table: list s tabulkou High Score
     """
     if high_score_table:
         # High Score table header
@@ -123,96 +125,83 @@ def draw_high_score(high_score_table: dict) -> None:
         print(inner_separator)
 
         # High Score table players
-        counter = 0
-        while counter < MAX_PLAYERS_IN_HIGH_SCORE and counter < len(high_score_table):
-            print("|{:^{}}".format(high_score_table[counter]["player"], len(SEPARATOR) - 23) +
-                  "|{:^9}".format(high_score_table[counter]["guesses"]) +
-                  "|{:^10}|".format(high_score_table[counter]["time"]))
-            counter += 1
+        for line in high_score_table:
+            print("|{:^{}}".format(line["player"], len(SEPARATOR) - 23) +
+                  "|{:^9}".format(line["guesses"]) +
+                  "|{:^10}|".format(line["time"]))
         print(inner_separator)
     else:
         print("Still no players in High Score Table.")
 
 
-def check_high_score(high_score_table: dict, played_turns: int, time_format: str) -> dict:
+def check_high_score(high_score_table: list, played_turns: int, time_format: str) -> int:
     """
-    Zkontroluje, zda se hráč umístil v tabulce High Score a popřípadě ho tam zapíše.
+    Zjistí pořadí hráče v tabulce High Score.
 
     :param high_score_table: Tabulka High Score
     :param played_turns: počet odehraných kol
     :param time_format: odehraný čas ve formátu hh:mm:ss
-    :return: Upravená tabulka High Score
+    :return: Pořadí hráče v tabulce High Score
     """
-    counter = 0
     player_order = 0
 
     # check order
     if high_score_table:
-        while counter < len(high_score_table):
-            if played_turns <= int(high_score_table[counter]["guesses"]):
-                if time_format < high_score_table[counter]["time"]:
-                    player_order = counter
+        for i, line in enumerate(high_score_table):
+            if played_turns <= int(line["guesses"]):
+                if time_format < line["time"]:
+                    player_order = i
                     break
                 else:
-                    player_order = counter +1
+                    player_order = i + 1
                     break
-            counter += 1
-
-    # new record
-    if player_order < MAX_PLAYERS_IN_HIGH_SCORE:
-        print("Congratulations!")
-        print("You have new record.")
-        name = input("Enter your name: ")
-        high_score_table = actualize_high_score(high_score_table, player_order, name, played_turns, time_format)
-
-    return high_score_table
+    return player_order
 
 
-def actualize_high_score(old_high_score_table: dict, new_player_order: int, player_name: str, guesses: int, time: str) -> dict:
+def get_player_name() -> str:
+    """
+    Získá hráčovo jméno.
+
+    :return: hráčovo jméno
+    """
+    print("Congratulations!")
+    print("You have new record.")
+    name = input("Enter your name: ")
+    if len(name) > len(SEPARATOR) - 25:
+        name = name[:len(SEPARATOR) - 25]
+    return name
+
+
+def actualize_high_score(high_score_table: list, new_player_order: int, player_name: str, guesses: int, time: str) -> list:
     """
     Vloží nový zápis do tabulky High Score
 
-    :param old_high_score_table: původní tabulka High Score
+    :param high_score_table: původní tabulka High Score
     :param new_player_order: nové pořadí hráče
     :param player_name: jméno hráče
     :param guesses: počet odehraných kol
     :param time: celkový čas hry
     :return: aktualizovaná tabulka High Score
     """
-    counter = 0
-    work_list = []
-    result = dict()
-    if old_high_score_table:
-        while counter < MAX_PLAYERS_IN_HIGH_SCORE and counter < len(old_high_score_table):
-            if new_player_order == counter:
-                work_list.append(dict(player=player_name, guesses=guesses, time=time))
+    high_score_table.insert(new_player_order, dict(player=player_name, guesses=guesses, time=time))
+    if len(high_score_table) > MAX_PLAYERS_IN_HIGH_SCORE:
+        high_score_table.pop()
 
-            work_list.append(old_high_score_table[counter])
-            counter += 1
-    else:
-        work_list.append(dict(player=player_name, guesses=guesses, time=time))
-
-    # create new high score table
-    for i, item in enumerate(work_list):
-        result[i] = work_list[i]
-
-    return result
+    return high_score_table
 
 
-def save_high_score(high_score_table: dict) -> None:
+def save_high_score(high_score_table: list) -> None:
     """
     Uloží záznamy z High Score tabulky do souboru
 
-    :param high_score_table: tabulka High Score
+    :param high_score_table: list tabulky High Score
     :return: None
     """
     if high_score_table:
-        counter = 0
         with open("high_score.txt", "w") as file:
-            while counter < MAX_PLAYERS_IN_HIGH_SCORE and counter < len(high_score_table):
-                line = f"{high_score_table[counter]['player']},{high_score_table[counter]['guesses']},{high_score_table[counter]['time']}"
+            for item in high_score_table:
+                line = f"{item['player']},{item['guesses']},{item['time']}"
                 file.write(line + "\n")
-                counter += 1
 
 
 def main():
@@ -240,13 +229,18 @@ def main():
                 break
             else:
                 print(message)
+                print(secret_number) # delete!!!!
                 print(SEPARATOR)
 
-    print("Game over.")
+    print("Game over.\n")
 
-    high_score_table = check_high_score(high_score_table, played_turns, time_format)
-    draw_high_score(high_score_table)
-    save_high_score(high_score_table)
+    # Game result
+    player_order = check_high_score(high_score_table, played_turns, time_format)
+    if player_order < MAX_PLAYERS_IN_HIGH_SCORE:
+        player_name = get_player_name()
+        actualize_high_score(high_score_table, player_order, player_name, played_turns, time_format)
+        draw_high_score(high_score_table)
+        save_high_score(high_score_table)
 
 
 if __name__ == "__main__":
