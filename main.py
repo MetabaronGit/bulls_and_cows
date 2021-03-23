@@ -229,7 +229,6 @@ def main():
                 break
             else:
                 print(message)
-                print(secret_number) # delete!!!!
                 print(SEPARATOR)
 
     print("Game over.\n")
