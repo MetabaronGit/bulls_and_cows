@@ -7,6 +7,11 @@ MAX_PLAYERS_IN_HIGH_SCORE = 5
 
 
 def draw_greeting() -> None:
+    """
+    Vypíše úvodní pozdrav
+
+    :return: None
+    """
     print(SEPARATOR)
     print("Hi there!")
     print(SEPARATOR)
@@ -18,6 +23,12 @@ def draw_greeting() -> None:
 
 
 def check_input(players_number: str) -> bool:
+    """
+    Kontroluje správnost formátu hráčova vstupního čísla
+
+    :param players_number: hráčovo zadané číslo
+    :return: bool
+    """
     result = False
     if not players_number.isdecimal():
         print("All characters must be decimals!")
@@ -33,6 +44,13 @@ def check_input(players_number: str) -> bool:
 
 
 def check_secret(players_number: str, secret_number: list) -> str:
+    """
+    Porovnání zadaného čísla s tajným číslem a vyhodnocení bulls / cows
+
+    :param players_number: hráčovo zadané číslo
+    :param secret_number: hádané číslo
+    :return: string s počty bulls / cows
+    """
     bulls, cows = 0, 0
     result = ""
 
@@ -53,7 +71,14 @@ def check_secret(players_number: str, secret_number: list) -> str:
     return result
 
 
-def win_message(played_turns: int, total_time: float) -> str:
+def draw_win_message(played_turns: int, total_time: float) -> str:
+    """
+    Vypíše gratulaci se statistikou po uhodnutí hádaného čísla.
+
+    :param played_turns: počet kol, které hráč potřeboval
+    :param total_time: celkový čas hry
+    :return: string s formátovaným celkovým časem hry
+    """
     time_format = time.strftime("%H:%M:%S", time.gmtime(total_time))
     print("Correct, you've guessed the right number")
     print(f"in {played_turns} guess", end="")
@@ -66,6 +91,11 @@ def win_message(played_turns: int, total_time: float) -> str:
 
 
 def get_high_score() -> dict:
+    """
+    Načte High Score tabulku ze souboru.
+
+    :return: slovník s tabulkou High Score
+    """
     result = dict()
     filename = "high_score.txt"
     if os.path.exists(filename):
@@ -78,6 +108,11 @@ def get_high_score() -> dict:
 
 
 def draw_high_score(high_score_table: dict) -> None:
+    """
+    Vykreslí tabulku High Score
+
+    :param high_score_table: slovník s tabulkou High Score
+    """
     if high_score_table:
         # High Score table header
         inner_separator = "+" + "-" * (len(SEPARATOR) - 23) + "+---------+----------+"
@@ -100,6 +135,14 @@ def draw_high_score(high_score_table: dict) -> None:
 
 
 def check_high_score(high_score_table: dict, played_turns: int, time_format: str) -> dict:
+    """
+    Zkontroluje, zda se hráč umístil v tabulce High Score a popřípadě ho tam zapíše.
+
+    :param high_score_table: Tabulka High Score
+    :param played_turns: počet odehraných kol
+    :param time_format: odehraný čas ve formátu hh:mm:ss
+    :return: Upravená tabulka High Score
+    """
     counter = 0
     player_order = 0
 
@@ -126,6 +169,16 @@ def check_high_score(high_score_table: dict, played_turns: int, time_format: str
 
 
 def actualize_high_score(old_high_score_table: dict, new_player_order: int, player_name: str, guesses: int, time: str) -> dict:
+    """
+    Vloží nový zápis do tabulky High Score
+
+    :param old_high_score_table: původní tabulka High Score
+    :param new_player_order: nové pořadí hráče
+    :param player_name: jméno hráče
+    :param guesses: počet odehraných kol
+    :param time: celkový čas hry
+    :return: aktualizovaná tabulka High Score
+    """
     counter = 0
     work_list = []
     result = dict()
@@ -147,6 +200,12 @@ def actualize_high_score(old_high_score_table: dict, new_player_order: int, play
 
 
 def save_high_score(high_score_table: dict) -> None:
+    """
+    Uloží záznamy z High Score tabulky do souboru
+
+    :param high_score_table: tabulka High Score
+    :return: None
+    """
     if high_score_table:
         counter = 0
         with open("high_score.txt", "w") as file:
@@ -159,9 +218,9 @@ def save_high_score(high_score_table: dict) -> None:
 def main():
     played_turns = 0
     draw_greeting()
-    high_score_table = get_high_score()
 
     # game setup
+    high_score_table = get_high_score()
     avaible_numbers = list("0123456789")
     random.shuffle(avaible_numbers)
     secret_number = avaible_numbers[:4]
@@ -176,7 +235,7 @@ def main():
             message = check_secret(players_number, secret_number)
             if not message:
                 total_time = time.time() - start_time
-                time_format = win_message(played_turns, total_time)
+                time_format = draw_win_message(played_turns, total_time)
                 print(SEPARATOR)
                 break
             else:
