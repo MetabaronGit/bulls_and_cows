@@ -1,4 +1,5 @@
 Rambo,3,00:00:58
+Mario,4,00:00:39
 Salvator Dali,5,00:02:09
+Bitmap Brothers,8,00:00:36
 bombardier,8,00:04:14
-Dude,9,xxx

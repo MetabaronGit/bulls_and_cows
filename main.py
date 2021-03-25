@@ -98,11 +98,14 @@ def get_high_score() -> list:
     """
     result = list()
     filename = "high_score.txt"
+
     if os.path.exists(filename):
         with open(filename, "r") as file:
             for item in file.readlines():
-                line = item.strip("\n").split(",")
-                result.append(dict(player=str(line[0]), guesses=str(line[1]), time=str(line[2])))
+                line = item.strip(" \n").split(",")
+                if line != [""]:
+                    result.append(dict(player=str(line[0]), guesses=str(line[1]), time=str(line[2])))
+
     if len(result) > MAX_PLAYERS_IN_HIGH_SCORE:
         result = result[:MAX_PLAYERS_IN_HIGH_SCORE]
 
@@ -184,7 +187,8 @@ def actualize_high_score(high_score_table: list, new_player_order: int, player_n
     :return: aktualizovaná tabulka High Score
     """
     high_score_table.insert(new_player_order, dict(player=player_name, guesses=guesses, time=time))
-    if len(high_score_table) > MAX_PLAYERS_IN_HIGH_SCORE:
+
+    while len(high_score_table) > MAX_PLAYERS_IN_HIGH_SCORE:
         high_score_table.pop()
 
     return high_score_table
